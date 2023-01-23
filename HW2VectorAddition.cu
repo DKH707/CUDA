@@ -1,18 +1,55 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include <time.h>
+
 #include <stdio.h>
 #include <malloc.h>
+
+#define WIN32_LEAN_AND_MEAN //Windows
+#include <time.h>		//Windows
+#include <winsock2.h>	//Windows
+#include <Windows.h>	//Windows
+#include <stdint.h>		//Windows
+
+//#include <sys/time.h> //Linux
+
+
+
 using namespace std;
 
-// Your Name
-// HW1 Vector addition on the CPU
+// Derek hopkins
+// 
+// HW2 Vector addition on the CPU
+// 
 //nvcc VectorAdditionCPU.cu -o VectorAddition
 
 
 // Length of the vector
 #define N 10 
+
+//for Windows system only *******************************
+int gettimeofday(struct timeval* tp, struct timezone* tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+//*****************************************************
+
 
 //Global CPU pointers (floats)
 //(? ? ? I need 3 points to floats.You should name them so the rest of the code works.)
@@ -65,7 +102,7 @@ void Addition(float* a, float* b, float* c, int n)
 int main()
 {
 	int i;
-	//timeval start, end;
+	timeval start, end;
 
 	//Partitioning off the memory that you will be using.	
 	AllocateMemory();
@@ -74,19 +111,21 @@ int main()
 	Innitialize();
 
 	//Starting the timer	
-	//gettimeofday(&start, NULL);
+	gettimeofday(&start, NULL);
+	//GetSystemTime(&start, NULL);
+
 
 	//Add the two vectors
 	Addition(A_CPU, B_CPU, C_CPU, N);
 
 	//Stopping the timer
-	//gettimeofday(&end, NULL);
+	gettimeofday(&end, NULL);
 
 	//Calculating the total time used in the addition and converting it to milliseconds
-	//float time = (end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec);
+	float time = (end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec);
 
 	//Printing out the time to add the two vectors.
-	//printf("CPU Time in milliseconds= %.15f\n", (time / 1000.0));
+	printf("CPU Time in milliseconds= %.15f\n", (time / 1000.0));
 
 	// Displaying vector info you will want to comment out the vector print line when your
 	// vector becomes big. This is just to make sure everything is running correctly before you do a big run.	
