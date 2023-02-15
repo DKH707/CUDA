@@ -79,33 +79,83 @@ void CleanUp()
 
 //This is the kernel. It is the function that will run on the GPU.
 //It adds vectors A and B then stores result in vector C
+/*
 __global__ void DotProductGPU(float *a, float *b, float *c, int n)
 {
 	int id = threadIdx.x;
 //	*************************************************
 	
-	c[id] = a[id] * b[id];
-	__SyncThreads();
+	__shared__ float temp[N];
+	temp[id] = a[id]*b[id];
 	
-	int fold;
-	int check = fold % 2;
-	if (check == 1)
+	__syncthreads();
+	
+	float sum = 0;
+	
+	if(id < N)
 	{
+	     for (int i = 0; i <= N; i++)
+		{
+		
+			sum += temp[i];	
+		
+		}
+	c[id] += sum;
+	}
+//	*************************************************
+}
+*/
+
+__global__ void DotProductGPU(float *a, float *b, float *c, int n)
+{
+	int id = threadIdx.x;
+//	*************************************************
+	//__shared__ float p[N];
+	int initFold = blockDim.x;
 	
-		c[0] = c[0].. to be continued
-	
+	if (id < n)
+	{
+		c[id] = a[id]*b[id];
 	}
 	
+	__syncthreads();
+	for (int i = initFold; i >= 2; i /= 2)
+	{
+	//	__syncthreads();
+		if (i % 2 == 1)
+		{
+			if (id == 0)
+			{
+				c[0] += c[i-1];
+			}
+			i-=1;
+		}
+		__syncthreads();
+		if (id < i/2)
+		{	
+			c[id]+=c[id+i/2];
+		}
+		__syncthreads();   
+	}
 	
-	c[id] = c[id] + ...
+	//__syncthreads();
 	
+	/*if (id == 0)
+	{
+		c[0] =c[0];
+	}	
+	*/
 //	*************************************************
 }
 
 
+
+
+
+
 int main()
 {
-	float *dot;
+	float dot;
 	timeval start, end;
 	
 	//Set the thread structure that you will be using on the GPU	
@@ -134,7 +184,7 @@ int main()
 	myCudaErrorCheck(__FILE__, __LINE__);
 	
 	//Copy Memory from GPU to CPU	
-	cudaMemcpyAsync(dot, &C_GPU[0], sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpyAsync(&dot, &C_GPU[0], sizeof(float), cudaMemcpyDeviceToHost);
 	myCudaErrorCheck(__FILE__, __LINE__);
 
 
