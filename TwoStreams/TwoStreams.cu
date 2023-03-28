@@ -164,9 +164,9 @@ int main()
 	
 	for(int i = 0; i < ENTIRE_DATA_SET; i += DATA_CHUNKS*2)
 	{
-		//******************************************
+	//******************************************
         //STREAM 0 TASKS
-		cudaMemcpyAsync(A0_GPU, A_CPU+i, DATA_CHUNKS*sizeof(float),cudaMemcpyHostToDevice, Stream0);
+	cudaMemcpyAsync(A0_GPU, A_CPU+i, DATA_CHUNKS*sizeof(float),cudaMemcpyHostToDevice, Stream0);
         cudaMemcpyAsync(B0_GPU, B_CPU+i, DATA_CHUNKS*sizeof(float),cudaMemcpyHostToDevice, Stream0);
 
         trigAdditionGPU<<<GridSize, BlockSize, 0, Stream0>>>(A0_GPU, B0_GPU,C0_GPU, DATA_CHUNKS);
@@ -181,7 +181,7 @@ int main()
 
         cudaMemcpyAsync(C_CPU+i+DATA_CHUNKS, C1_GPU, DATA_CHUNKS*sizeof(float),cudaMemcpyDeviceToHost, Stream1);
         //--------------------------------
-		//******************************************
+	//******************************************
 	}
 	
 	// Make the CPU wait until the Streams have finishd before it continues.
